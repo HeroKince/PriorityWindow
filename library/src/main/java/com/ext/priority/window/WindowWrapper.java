@@ -25,9 +25,14 @@ public class WindowWrapper {
      */
     private boolean isCanShow;
 
-    //弹窗类型
+    /**
+     * 弹窗类型
+     */
     private WindowType mWindowType;
 
+    /**
+     * 弹窗名称
+     */
     private String mWindowName;
 
     private WindowWrapper(Builder builder) {
@@ -98,7 +103,9 @@ public class WindowWrapper {
          */
         private int priority;
 
-        //弹窗类型
+        /**
+         * 弹窗类型
+         */
         private WindowType windowType;
 
         /**
@@ -106,6 +113,9 @@ public class WindowWrapper {
          */
         private boolean isCanShow;
 
+        /**
+         * 弹窗名称
+         */
         private String windowName;
 
         public Builder window(IWindow window) {
