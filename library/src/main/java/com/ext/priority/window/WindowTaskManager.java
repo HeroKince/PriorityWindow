@@ -6,7 +6,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 弹窗管理（支持设置弹窗优先级）
+ * 弹窗管理
+ * - 按优先级顺序阻塞式显示各种类型弹窗，默认从最高优先级开始显示
+ * - 只有上一个高优先级弹窗显示完或者取消显示，下一个低优先级弹窗才可以显示
+ * - 指定显示某一个弹窗的前提是没有更高优先级的弹窗需要显示
+ * - 在显示一个弹窗之前需要判断是否能够或者需要显示
+ * - 根据优先级去查找指定的弹窗，优先级相当于唯一ID
  */
 public class WindowTaskManager {
     private List<WindowWrapper> mWindows;
@@ -33,7 +38,7 @@ public class WindowTaskManager {
     /**
      * 添加弹窗
      *
-     * @param windowWrapper 待添加的弹窗
+     * @param windowWrapper 待显示的弹窗
      */
     public synchronized void add(Activity activity, WindowWrapper windowWrapper) {
         if (windowWrapper != null && windowWrapper.getWindow() != null) {
@@ -60,7 +65,8 @@ public class WindowTaskManager {
     }
 
     /**
-     * 展示弹窗（优先级最高的Window）
+     * 展示弹窗
+     * 从优先级最高的Window开始显示
      */
     public synchronized void show(Activity activity) {
         WindowWrapper windowWrapper = getMaxPriorityWindow();
@@ -73,32 +79,43 @@ public class WindowTaskManager {
     }
 
     /**
-     * 展示弹窗
+     * 显示指定的弹窗
      *
-     * @param windowWrapper 待展示的弹窗
+     * @param priorities
      */
-    public synchronized void show(Activity activity, WindowWrapper windowWrapper) {
+    public synchronized void show(Activity activity, int priorities) {
+        WindowWrapper windowWrapper = getTargetWindow(priorities);
         if (windowWrapper != null && windowWrapper.getWindow() != null) {
             WindowWrapper topShowWindow = getShowingWindow();
             if (topShowWindow == null) {
-                /*获取优先级*/
                 int priority = windowWrapper.getPriority();
                 WindowWrapper maxPriorityWindow = getMaxPriorityWindow();
-                if (maxPriorityWindow != null && windowWrapper.isCanShow()) {
-                    if (priority >= maxPriorityWindow.getPriority()) {
-                        windowWrapper.getWindow().show(activity);
-                    }
+                if (maxPriorityWindow != null && windowWrapper.isCanShow() && priority >= maxPriorityWindow.getPriority()) {
+                    windowWrapper.getWindow().show(activity);
                 }
             }
         }
     }
 
     /**
-     * 移除要展示的弹窗
+     * 弹窗满足展示条件
      *
-     * @param windowWrapper
+     * @param priority
      */
-    public synchronized void remove(WindowWrapper windowWrapper) {
+    public void enableWindow(int priority) {
+        WindowWrapper windowWrapper = getTargetWindow(priority);
+        if (windowWrapper != null && windowWrapper.getWindow() != null) {
+            windowWrapper.setCanShow(true);
+        }
+    }
+
+    /**
+     * 移除不需要显示弹窗
+     *
+     * @param priority
+     */
+    public synchronized void disableWindow(int priority) {
+        WindowWrapper windowWrapper = getTargetWindow(priority);
         if (windowWrapper != null && windowWrapper.getWindow() != null) {
             if (mWindows != null) {
                 mWindows.remove(windowWrapper);
@@ -179,6 +196,18 @@ public class WindowTaskManager {
                 return mWindows.get(position);
             } else {
                 return null;
+            }
+        }
+        return null;
+    }
+
+    private synchronized WindowWrapper getTargetWindow(int priority) {
+        if (mWindows != null) {
+            for (int i = 0, size = mWindows.size(); i < size; i++) {
+                WindowWrapper windowWrapper = mWindows.get(i);
+                if (windowWrapper != null && windowWrapper.getWindow() != null && windowWrapper.getPriority() == priority) {
+                    return windowWrapper;
+                }
             }
         }
         return null;

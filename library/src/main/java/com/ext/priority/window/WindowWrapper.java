@@ -28,11 +28,14 @@ public class WindowWrapper {
     //弹窗类型
     private WindowType mWindowType;
 
+    private String mWindowName;
+
     private WindowWrapper(Builder builder) {
         mWindow = builder.window;
         mPriority = builder.priority;
         mWindowType = builder.windowType;
         isCanShow = builder.isCanShow;
+        mWindowName = builder.windowName;
     }
 
     public IWindow getWindow() {
@@ -75,6 +78,14 @@ public class WindowWrapper {
         isCanShow = canShow;
     }
 
+    public String getWindowName() {
+        return mWindowName;
+    }
+
+    public void setWindowName(String mWindowName) {
+        this.mWindowName = mWindowName;
+    }
+
     public static class Builder {
 
         /**
@@ -95,6 +106,8 @@ public class WindowWrapper {
          */
         private boolean isCanShow;
 
+        private String windowName;
+
         public Builder window(IWindow window) {
             this.window = window;
             return this;
@@ -112,6 +125,15 @@ public class WindowWrapper {
 
         public Builder setCanShow(boolean canShow) {
             isCanShow = canShow;
+            return this;
+        }
+
+        public String getWindowName() {
+            return windowName;
+        }
+
+        public Builder setWindowName(String windowName) {
+            this.windowName = windowName;
             return this;
         }
 
