@@ -19,7 +19,7 @@
 
         <activity
             android:name=".demo.DemoActivity"
-            android:theme="@style/AppThemeTransparent" />
+            android:theme="@style/dialog" />
 
     </application>
 

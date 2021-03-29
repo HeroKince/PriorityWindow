@@ -16,10 +16,6 @@ import com.ext.priority.window.OnWindowShowListener;
  * 窗口例子类
  */
 public class DemoDialog extends AlertDialog implements IWindow {
-    /**
-     * 是否被挤出（每个实现DialogManager.Dialog的窗口类都需要新建该变量）
-     */
-    private boolean isCrowdOut;
 
     private OnWindowDismissListener onWindowDismissListener;
 
@@ -64,16 +60,6 @@ public class DemoDialog extends AlertDialog implements IWindow {
                 listener.onShow();
             }
         });
-    }
-
-    /**
-     * 每个实现DialogManager.Dialog的窗口类都需要实现该
-     * 方法告诉DialogManager是否可展示此窗口（比如有些窗
-     * 口只在页面的某个tab下才能展示）
-     */
-    @Override
-    public boolean isCanShow() {
-        return true;
     }
 
 }

@@ -7,7 +7,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.PopupWindow;
 
 import com.ext.priority.window.IWindow;
@@ -21,13 +20,19 @@ public class DemoPopupWindow extends PopupWindow implements IWindow {
 
     public DemoPopupWindow(Context context) {
         super(context);
-        setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-        setWidth(ViewGroup.LayoutParams.WRAP_CONTENT);
+        setHeight(600);
+        setWidth(800);
         setOutsideTouchable(true);
         setFocusable(true);
         setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         View contentView = LayoutInflater.from(context).inflate(R.layout.popup_demo, null, false);
         setContentView(contentView);
+        contentView.findViewById(R.id.close).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dismiss();
+            }
+        });
     }
 
     @Override
@@ -38,7 +43,7 @@ public class DemoPopupWindow extends PopupWindow implements IWindow {
 
     @Override
     public void dismiss() {
-        dismiss();
+        super.dismiss();
     }
 
     @Override
@@ -54,11 +59,6 @@ public class DemoPopupWindow extends PopupWindow implements IWindow {
     @Override
     public void setOnWindowShowListener(OnWindowShowListener listener) {
         mOnWindowShowListener = listener;
-    }
-
-    @Override
-    public boolean isCanShow() {
-        return true;
     }
 
 }

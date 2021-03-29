@@ -12,6 +12,27 @@ import com.ext.priority.window.R;
 
 public class TestActivity extends AppCompatActivity {
 
+    /**
+     * 活动弹窗的优先级
+     */
+    public final static int AD_PRIORITY = 1;
+    /**
+     * 更新弹窗的优先级
+     */
+    public final static int UPDATE_PRIORITY = 2;
+    /**
+     * alert弹窗的优先级
+     */
+    public final static int ALERT_PRIORITY = 3;
+    /**
+     * 登录弹窗的优先级
+     */
+    public final static int LOGIN_PRIORITY = 4;
+    /**
+     * other弹窗的优先级
+     */
+    public final static int OTHER_PRIORITY = 5;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -23,28 +44,27 @@ public class TestActivity extends AppCompatActivity {
     }
 
     private void initDialog() {
-        int[] priority = new int[]{3, 1, 2};
-
+        // Dialog
         DemoDialog demoDialog = new DemoDialog(this);
-        demoDialog.setTitle("温馨提示");
-        demoDialog.setMessage("第一个弹窗,优先级：" + priority[0]);
+        demoDialog.setTitle("对话框");
+        demoDialog.setMessage("Dialog Window");
         demoDialog.setCancelable(false);
         demoDialog.setButton(DialogInterface.BUTTON_POSITIVE, "关闭", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-              /*调用此方法传false告诉DialogManager此窗口
-                dismiss是用户自己关闭的，而非被优先级更高的弹
-                窗show后被挤出，这种情况优先级更高的弹窗dismiss
-                后DialogManager不会重新show此弹窗*/
                 demoDialog.dismiss();
             }
         });
+
+        // PopupWindow
         DemoPopupWindow popupWindow = new DemoPopupWindow(this);
+
+        // Activity
         DemoActivity demoActivity = new DemoActivity();
 
-        WindowTaskManager.getInstance().add(this, new WindowWrapper.Builder().window(demoDialog).priority(priority[0]).build());
-        WindowTaskManager.getInstance().add(this, new WindowWrapper.Builder().window(popupWindow).priority(priority[1]).build());
-        WindowTaskManager.getInstance().add(this, new WindowWrapper.Builder().window(demoActivity).priority(priority[2]).build());
+        WindowTaskManager.getInstance().add(this, new WindowWrapper.Builder().window(demoDialog).priority(AD_PRIORITY).setCanShow(true).build());
+        WindowTaskManager.getInstance().add(this, new WindowWrapper.Builder().window(popupWindow).priority(UPDATE_PRIORITY).setCanShow(true).build());
+        WindowTaskManager.getInstance().add(this, new WindowWrapper.Builder().window(demoActivity).priority(ALERT_PRIORITY).setCanShow(true).build());
     }
 
 }
