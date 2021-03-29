@@ -8,6 +8,7 @@ import android.os.Handler;
 
 import com.ext.priority.window.IWindow;
 import com.ext.priority.window.WindowTaskManager;
+import com.ext.priority.window.WindowType;
 import com.ext.priority.window.WindowWrapper;
 import com.ext.priority.window.R;
 
@@ -70,9 +71,9 @@ public class TestActivity extends AppCompatActivity {
      * 统一按照优先级顺序初始化对话框
      */
     private void initDialog() {
-        WindowTaskManager.getInstance().addWindow(this, new WindowWrapper.Builder().priority(ALERT_PRIORITY).setCanShow(false).build());
-        WindowTaskManager.getInstance().addWindow(this, new WindowWrapper.Builder().priority(UPDATE_PRIORITY).setCanShow(false).build());
-        WindowTaskManager.getInstance().addWindow(this, new WindowWrapper.Builder().priority(AD_PRIORITY).setCanShow(false).build());
+        WindowTaskManager.getInstance().addWindow(this, new WindowWrapper.Builder().priority(ALERT_PRIORITY).windowType(WindowType.ACTIVITY).setCanShow(false).build());
+        WindowTaskManager.getInstance().addWindow(this, new WindowWrapper.Builder().priority(UPDATE_PRIORITY).windowType(WindowType.POUPOWINDOW).setCanShow(false).build());
+        WindowTaskManager.getInstance().addWindow(this, new WindowWrapper.Builder().priority(AD_PRIORITY).windowType(WindowType.DIALOG).setCanShow(false).build());
     }
 
     private IWindow getDialogWindow() {
