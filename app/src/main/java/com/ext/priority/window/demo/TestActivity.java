@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
 
+import com.ext.priority.window.IWindow;
 import com.ext.priority.window.WindowTaskManager;
 import com.ext.priority.window.WindowWrapper;
 import com.ext.priority.window.R;
@@ -21,17 +22,13 @@ public class TestActivity extends AppCompatActivity {
      */
     public final static int UPDATE_PRIORITY = 2;
     /**
-     * alert弹窗的优先级
+     * 评分弹窗的优先级
      */
     public final static int ALERT_PRIORITY = 3;
     /**
-     * 登录弹窗的优先级
-     */
-    public final static int LOGIN_PRIORITY = 4;
-    /**
      * other弹窗的优先级
      */
-    public final static int OTHER_PRIORITY = 5;
+    public final static int OTHER_PRIORITY = 4;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,10 +37,45 @@ public class TestActivity extends AppCompatActivity {
 
         initDialog();
 
-        new Handler().postDelayed(() -> WindowTaskManager.getInstance().show(TestActivity.this), 3000);
+        // 模拟网络延迟
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                WindowTaskManager.getInstance().enableWindow(TestActivity.this, ALERT_PRIORITY, getActivityWindow());
+            }
+        }, 1000);
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                WindowTaskManager.getInstance().enableWindow(TestActivity.this, UPDATE_PRIORITY, getPopupWindow());
+            }
+        }, 3000);
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                WindowTaskManager.getInstance().enableWindow(TestActivity.this, AD_PRIORITY, getDialogWindow());
+            }
+        }, 2000);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        WindowTaskManager.getInstance().clear();
+    }
+
+    /**
+     * 统一按照优先级顺序初始化对话框
+     */
     private void initDialog() {
+        WindowTaskManager.getInstance().addWindow(this, new WindowWrapper.Builder().priority(ALERT_PRIORITY).setCanShow(false).build());
+        WindowTaskManager.getInstance().addWindow(this, new WindowWrapper.Builder().priority(UPDATE_PRIORITY).setCanShow(false).build());
+        WindowTaskManager.getInstance().addWindow(this, new WindowWrapper.Builder().priority(AD_PRIORITY).setCanShow(false).build());
+    }
+
+    private IWindow getDialogWindow() {
         // Dialog
         DemoDialog demoDialog = new DemoDialog(this);
         demoDialog.setTitle("对话框");
@@ -55,16 +87,19 @@ public class TestActivity extends AppCompatActivity {
                 demoDialog.dismiss();
             }
         });
+        return demoDialog;
+    }
 
+    private IWindow getPopupWindow() {
         // PopupWindow
         DemoPopupWindow popupWindow = new DemoPopupWindow(this);
+        return popupWindow;
+    }
 
+    private IWindow getActivityWindow() {
         // Activity
         DemoActivity demoActivity = new DemoActivity();
-
-        WindowTaskManager.getInstance().add(this, new WindowWrapper.Builder().window(demoDialog).priority(AD_PRIORITY).setCanShow(true).build());
-        WindowTaskManager.getInstance().add(this, new WindowWrapper.Builder().window(popupWindow).priority(UPDATE_PRIORITY).setCanShow(true).build());
-        WindowTaskManager.getInstance().add(this, new WindowWrapper.Builder().window(demoActivity).priority(ALERT_PRIORITY).setCanShow(true).build());
+        return demoActivity;
     }
 
 }

@@ -43,8 +43,9 @@ public class WindowHelper {
         this.mActivityShowListener = mActivityShowListener;
     }
 
-    public static void start() {
-
+    public void onDestroy() {
+        mActivityShowListener = null;
+        mActivityDismissListener = null;
     }
 
 }
