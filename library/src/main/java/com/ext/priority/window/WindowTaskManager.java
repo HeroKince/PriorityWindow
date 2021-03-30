@@ -47,17 +47,9 @@ public class WindowTaskManager {
             }
 
             if (windowWrapper.getWindow() != null) {
-                windowWrapper.getWindow().setOnWindowShowListener(new OnWindowShowListener() {
-                    @Override
-                    public void onShow() {
-                        windowWrapper.setShowing(true);
-                    }
-                });
-
                 windowWrapper.getWindow().setOnWindowDismissListener(new OnWindowDismissListener() {
                     @Override
                     public void onDismiss() {
-                        windowWrapper.setShowing(false);
                         mWindows.remove(windowWrapper);
                         showNext(activity);
                     }
@@ -78,17 +70,9 @@ public class WindowTaskManager {
         if (windowWrapper != null) {
 
             if (windowWrapper.getWindow() == null) {
-                window.setOnWindowShowListener(new OnWindowShowListener() {
-                    @Override
-                    public void onShow() {
-                        windowWrapper.setShowing(true);
-                    }
-                });
-
                 window.setOnWindowDismissListener(new OnWindowDismissListener() {
                     @Override
                     public void onDismiss() {
-                        windowWrapper.setShowing(false);
                         mWindows.remove(windowWrapper);
                         showNext(activity);
                     }
@@ -123,7 +107,7 @@ public class WindowTaskManager {
         WindowWrapper windowWrapper = getMaxPriorityWindow();
         if (windowWrapper != null && windowWrapper.isCanShow()) {
             IWindow window = windowWrapper.getWindow();
-            if (window != null) {
+            if (window != null && isActivityAlive(activity)) {
                 window.show(activity);
             }
         }
@@ -142,7 +126,7 @@ public class WindowTaskManager {
                 int priority = windowWrapper.getPriority();
                 WindowWrapper maxPriorityWindow = getMaxPriorityWindow();
                 if (maxPriorityWindow != null && windowWrapper.isCanShow() && priority >= maxPriorityWindow.getPriority()) {
-                    if (windowWrapper.getWindow() != null) {
+                    if (windowWrapper.getWindow() != null && isActivityAlive(activity)) {
                         windowWrapper.getWindow().show(activity);
                     }
                 }
@@ -202,6 +186,15 @@ public class WindowTaskManager {
         }
     }
 
+    private boolean isActivityAlive(Activity activity) {
+        if (activity == null
+                || activity.isDestroyed()
+                || activity.isFinishing()) {
+            return false;
+        }
+        return true;
+    }
+
     /**
      * 获取当前栈中优先级最高的Window（优先级相同则返回后添加的弹窗）
      */
@@ -249,7 +242,7 @@ public class WindowTaskManager {
         if (mWindows != null) {
             for (int i = 0, size = mWindows.size(); i < size; i++) {
                 WindowWrapper windowWrapper = mWindows.get(i);
-                if (windowWrapper != null && windowWrapper.getWindow() != null && windowWrapper.isShowing()) {
+                if (windowWrapper != null && windowWrapper.getWindow() != null && windowWrapper.getWindow().isShowing()) {
                     return windowWrapper;
                 }
             }

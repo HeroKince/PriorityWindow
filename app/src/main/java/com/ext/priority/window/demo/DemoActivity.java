@@ -8,7 +8,6 @@ import androidx.annotation.Nullable;
 
 import com.ext.priority.window.IWindow;
 import com.ext.priority.window.OnWindowDismissListener;
-import com.ext.priority.window.OnWindowShowListener;
 import com.ext.priority.window.R;
 import com.ext.priority.window.WindowHelper;
 
@@ -23,8 +22,6 @@ public class DemoActivity extends Activity implements IWindow {
     @Override
     public void show(Activity activity) {
         activity.startActivity(new Intent(activity, DemoActivity.class));
-        WindowHelper.getInstance().getActivityShowListener().onShow();
-
         //WindowTaskManager.getInstance().disableWindow(TestActivity.UPDATE_PRIORITY);
     }
 
@@ -40,13 +37,13 @@ public class DemoActivity extends Activity implements IWindow {
     }
 
     @Override
-    public void setOnWindowDismissListener(OnWindowDismissListener listener) {
-        WindowHelper.getInstance().setActivityDismissListener(listener);
+    public boolean isShowing() {
+        return isFinishing() || isDestroyed();
     }
 
     @Override
-    public void setOnWindowShowListener(OnWindowShowListener listener) {
-        WindowHelper.getInstance().setActivityShowListener(listener);
+    public void setOnWindowDismissListener(OnWindowDismissListener listener) {
+        WindowHelper.getInstance().setActivityDismissListener(listener);
     }
 
 }

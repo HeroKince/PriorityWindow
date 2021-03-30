@@ -16,11 +16,6 @@ public class WindowWrapper {
     private int mPriority;
 
     /**
-     * 当前是否处于show状态
-     */
-    private boolean isShowing;
-
-    /**
      * 是否满足show的条件
      */
     private boolean isCanShow;
@@ -57,14 +52,6 @@ public class WindowWrapper {
 
     public void setPriority(int priority) {
         this.mPriority = priority;
-    }
-
-    public boolean isShowing() {
-        return isShowing;
-    }
-
-    public void setShowing(boolean showing) {
-        isShowing = showing;
     }
 
     public WindowType getWindowType() {

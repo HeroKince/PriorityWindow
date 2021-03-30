@@ -10,7 +10,6 @@ import androidx.appcompat.app.AlertDialog;
 
 import com.ext.priority.window.IWindow;
 import com.ext.priority.window.OnWindowDismissListener;
-import com.ext.priority.window.OnWindowShowListener;
 
 /**
  * 窗口例子类
@@ -42,22 +41,17 @@ public class DemoDialog extends AlertDialog implements IWindow {
     }
 
     @Override
+    public boolean isShowing() {
+        return super.isShowing();
+    }
+
+    @Override
     public void setOnWindowDismissListener(OnWindowDismissListener listener) {
         onWindowDismissListener = listener;
         setOnDismissListener(new OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialog) {
                 onWindowDismissListener.onDismiss();
-            }
-        });
-    }
-
-    @Override
-    public void setOnWindowShowListener(OnWindowShowListener listener) {
-        setOnShowListener(new OnShowListener() {
-            @Override
-            public void onShow(DialogInterface dialog) {
-                listener.onShow();
             }
         });
     }

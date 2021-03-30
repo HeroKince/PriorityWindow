@@ -11,12 +11,9 @@ import android.widget.PopupWindow;
 
 import com.ext.priority.window.IWindow;
 import com.ext.priority.window.OnWindowDismissListener;
-import com.ext.priority.window.OnWindowShowListener;
 import com.ext.priority.window.R;
 
 public class DemoPopupWindow extends PopupWindow implements IWindow {
-
-    private OnWindowShowListener mOnWindowShowListener;
 
     public DemoPopupWindow(Context context) {
         super(context);
@@ -38,12 +35,16 @@ public class DemoPopupWindow extends PopupWindow implements IWindow {
     @Override
     public void show(Activity activity) {
         showAtLocation(activity.getWindow().getDecorView(), Gravity.CENTER, 0, 0);
-        mOnWindowShowListener.onShow();
     }
 
     @Override
     public void dismiss() {
         super.dismiss();
+    }
+
+    @Override
+    public boolean isShowing() {
+        return super.isShowing();
     }
 
     @Override
@@ -55,10 +56,4 @@ public class DemoPopupWindow extends PopupWindow implements IWindow {
             }
         });
     }
-
-    @Override
-    public void setOnWindowShowListener(OnWindowShowListener listener) {
-        mOnWindowShowListener = listener;
-    }
-
 }

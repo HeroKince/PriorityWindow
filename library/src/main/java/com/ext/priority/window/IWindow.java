@@ -18,13 +18,14 @@ public interface IWindow {
     void dismiss();
 
     /**
+     * 是否展示
+     * @return
+     */
+    boolean isShowing();
+
+    /**
      * 设置窗口关闭监听
      */
     void setOnWindowDismissListener(OnWindowDismissListener listener);
-
-    /**
-     * 设置窗口展示监听
-     */
-    void setOnWindowShowListener(OnWindowShowListener listener);
 
 }
