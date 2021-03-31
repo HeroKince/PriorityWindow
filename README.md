@@ -4,9 +4,17 @@
 
 ### 使用方法
 
-初始化需要按照顺序显示的弹窗
-
 1.直接显示
+
+弹窗集成IWindow，并实现相关方法：
+
+```
+public class DemoDialog extends AlertDialog implements IWindow {
+   ...
+}
+```
+
+然后将弹窗添加到任务队列中去：
 
 ```
 WindowTaskManager.getInstance().addWindow(this, new WindowWrapper.Builder()
@@ -16,13 +24,25 @@ WindowTaskManager.getInstance().addWindow(this, new WindowWrapper.Builder()
 .window(new Dialog())
 .build());
 
-WindowTaskManager.getInstance().show(activity);
+```
 
+最后调用显示弹窗方法：
+
+```
+WindowTaskManager.getInstance().show(activity);
 ```
 
 2.等待逻辑处理后显示
 
-先初始化：
+弹窗集成IWindow，并实现相关方法：
+
+```
+public class DemoDialog extends AlertDialog implements IWindow {
+   ...
+}
+```
+
+然后初始化弹窗任务：
 
 ```
 WindowTaskManager.getInstance().addWindow(this, new WindowWrapper.Builder()
@@ -32,13 +52,13 @@ WindowTaskManager.getInstance().addWindow(this, new WindowWrapper.Builder()
 .build());
 ```
 
-在要显示的地方调用：
+在要显示弹窗的地方调用：
 
 ```
 WindowTaskManager.getInstance().enableWindow(TestActivity.this, ALERT_PRIORITY, getActivityWindow());
 ```
 
-如果不需要显示了，则调用：
+如果不需要显示弹窗了，则调用：
 
 ```
 WindowTaskManager.getInstance().disableWindow(TestActivity.ALERT_PRIORITY);
@@ -58,5 +78,5 @@ WindowTaskManager.getInstance().show(activity);
 ```
 WindowTaskManager.getInstance().clear();
 ```
-
+退出应用的时候将任务栈清空。
 
