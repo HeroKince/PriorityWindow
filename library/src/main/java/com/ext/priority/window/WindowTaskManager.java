@@ -7,14 +7,19 @@ import java.util.List;
 
 /**
  * 弹窗管理
+ * <p>
  * - 按优先级顺序阻塞式显示各种类型弹窗，默认从最高优先级开始显示
  * - 只有上一个高优先级弹窗显示完或者取消显示，下一个低优先级弹窗才可以显示
  * - 指定显示某一个弹窗的前提是没有更高优先级的弹窗需要显示
  * - 在显示一个弹窗之前需要判断是否能够或者需要显示
  * - 根据优先级去查找指定的弹窗，优先级相当于唯一ID
+ * - 显示过的弹窗可以根据业务逻辑再次显示
+ * - 优先级相同的弹窗则后添加的弹窗先显示
  */
 public class WindowTaskManager {
+
     private List<WindowWrapper> mWindows;
+    private boolean isBlockTask;// 是否阻塞所有弹窗显示
 
     private static WindowTaskManager mDefaultInstance;
 
@@ -68,7 +73,6 @@ public class WindowTaskManager {
     public synchronized void enableWindow(Activity activity, int priority, IWindow window) {
         WindowWrapper windowWrapper = getTargetWindow(priority);
         if (windowWrapper != null) {
-
             if (windowWrapper.getWindow() == null) {
                 window.setOnWindowDismissListener(new OnWindowDismissListener() {
                     @Override
@@ -78,10 +82,28 @@ public class WindowTaskManager {
                     }
                 });
             }
-
             windowWrapper.setCanShow(true);
             windowWrapper.setWindow(window);
-            show(activity, priority);
+            if (!isBlockTask) {
+                show(activity, windowWrapper);
+            }
+        } else {
+            WindowWrapper newWindowWrapper = new WindowWrapper.Builder()
+                    .priority(priority)
+                    .setCanShow(true)
+                    .window(window)
+                    .build();
+            window.setOnWindowDismissListener(new OnWindowDismissListener() {
+                @Override
+                public void onDismiss() {
+                    mWindows.remove(newWindowWrapper);
+                    showNext(activity);
+                }
+            });
+            addWindow(activity, newWindowWrapper);
+            if (!isBlockTask) {
+                show(activity, newWindowWrapper);
+            }
         }
     }
 
@@ -109,27 +131,6 @@ public class WindowTaskManager {
             IWindow window = windowWrapper.getWindow();
             if (window != null && isActivityAlive(activity)) {
                 window.show(activity);
-            }
-        }
-    }
-
-    /**
-     * 显示指定的弹窗
-     *
-     * @param priorities
-     */
-    public synchronized void show(Activity activity, int priorities) {
-        WindowWrapper windowWrapper = getTargetWindow(priorities);
-        if (windowWrapper != null && windowWrapper.getWindow() != null) {
-            WindowWrapper topShowWindow = getShowingWindow();
-            if (topShowWindow == null) {
-                int priority = windowWrapper.getPriority();
-                WindowWrapper maxPriorityWindow = getMaxPriorityWindow();
-                if (maxPriorityWindow != null && windowWrapper.isCanShow() && priority >= maxPriorityWindow.getPriority()) {
-                    if (windowWrapper.getWindow() != null && isActivityAlive(activity)) {
-                        windowWrapper.getWindow().show(activity);
-                    }
-                }
             }
         }
     }
@@ -175,24 +176,65 @@ public class WindowTaskManager {
     }
 
     /**
+     * 是否阻塞弹窗
+     *
+     * @return
+     */
+    public boolean isBlockTask() {
+        return isBlockTask;
+    }
+
+    /**
+     * 设置阻塞弹窗
+     * 例如系统权限弹窗显示完再显示其他弹窗
+     *
+     * @param blockTask
+     */
+    public void setBlockTask(boolean blockTask) {
+        isBlockTask = blockTask;
+    }
+
+    /**
+     * 显示指定的弹窗
+     *
+     * @param windowWrapper
+     */
+    private synchronized void show(Activity activity, WindowWrapper windowWrapper) {
+        if (windowWrapper != null && windowWrapper.getWindow() != null) {
+            WindowWrapper topShowWindow = getShowingWindow();
+            if (topShowWindow == null) {
+                int priority = windowWrapper.getPriority();
+                WindowWrapper maxPriorityWindow = getMaxPriorityWindow();
+                if (maxPriorityWindow != null && windowWrapper.isCanShow() && priority >= maxPriorityWindow.getPriority()) {
+                    if (windowWrapper.getWindow() != null && isActivityAlive(activity)) {
+                        windowWrapper.getWindow().show(activity);
+                    }
+                }
+            }
+        }
+    }
+    /**/
+
+    /**
      * 展示下一个优先级最大的Window
      */
     private synchronized void showNext(Activity activity) {
+        if (isBlockTask) {
+            return;
+        }
+
         WindowWrapper windowWrapper = getMaxPriorityWindow();
         if (windowWrapper != null && windowWrapper.isCanShow()) {
-            if (windowWrapper.getWindow() != null) {
+            if (windowWrapper.getWindow() != null && isActivityAlive(activity)) {
                 windowWrapper.getWindow().show(activity);
             }
         }
     }
 
     private boolean isActivityAlive(Activity activity) {
-        if (activity == null
-                || activity.isDestroyed()
-                || activity.isFinishing()) {
-            return false;
-        }
-        return true;
+        return activity != null
+                && !activity.isDestroyed()
+                && !activity.isFinishing();
     }
 
     /**

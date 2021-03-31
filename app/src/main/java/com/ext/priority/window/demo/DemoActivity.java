@@ -12,6 +12,7 @@ import com.ext.priority.window.R;
 import com.ext.priority.window.WindowHelper;
 
 public class DemoActivity extends Activity implements IWindow {
+    private boolean isActivityFront = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -23,6 +24,18 @@ public class DemoActivity extends Activity implements IWindow {
     public void show(Activity activity) {
         activity.startActivity(new Intent(activity, DemoActivity.class));
         //WindowTaskManager.getInstance().disableWindow(TestActivity.UPDATE_PRIORITY);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        isActivityFront = true;
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        isActivityFront = false;
     }
 
     @Override
@@ -38,7 +51,7 @@ public class DemoActivity extends Activity implements IWindow {
 
     @Override
     public boolean isShowing() {
-        return isFinishing() || isDestroyed();
+        return isActivityFront;
     }
 
     @Override
