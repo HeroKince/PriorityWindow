@@ -143,7 +143,7 @@ public class WindowTaskManager {
             for (int i = 0, size = mWindows.size(); i < size; i++) {
                 if (mWindows.get(i) != null) {
                     IWindow window = mWindows.get(i).getWindow();
-                    if (window != null) {
+                    if (window != null && window.isShowing()) {
                         window.dismiss();
                     }
                 }
@@ -164,7 +164,7 @@ public class WindowTaskManager {
                 for (int i = 0, size = mWindows.size(); i < size; i++) {
                     if (mWindows.get(i) != null) {
                         IWindow window = mWindows.get(i).getWindow();
-                        if (window != null) {
+                        if (window != null && window.isShowing()) {
                             window.dismiss();
                         }
                     }

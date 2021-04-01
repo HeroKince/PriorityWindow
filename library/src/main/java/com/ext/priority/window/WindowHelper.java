@@ -5,6 +5,7 @@ package com.ext.priority.window;
  */
 public class WindowHelper {
 
+    private boolean isActivityShow;
     private OnWindowDismissListener mActivityDismissListener;
 
     private static WindowHelper mDefaultInstance;
@@ -34,8 +35,17 @@ public class WindowHelper {
         this.mActivityDismissListener = mActivityDismissListener;
     }
 
+    public boolean isActivityShow() {
+        return isActivityShow;
+    }
+
+    public void setActivityShow(boolean activityShow) {
+        isActivityShow = activityShow;
+    }
+
     public void onDestroy() {
         mActivityDismissListener = null;
+        isActivityShow = false;
     }
 
 }
