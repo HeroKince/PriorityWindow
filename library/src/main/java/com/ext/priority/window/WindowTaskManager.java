@@ -51,13 +51,14 @@ public class WindowTaskManager {
                 mWindows = new ArrayList<>();
             }
 
+            if (hasAddWindow(windowWrapper)) {
+                return;
+            }
+
             if (windowWrapper.getWindow() != null) {
-                windowWrapper.getWindow().setOnWindowDismissListener(new OnWindowDismissListener() {
-                    @Override
-                    public void onDismiss() {
-                        mWindows.remove(windowWrapper);
-                        showNext(activity);
-                    }
+                windowWrapper.getWindow().setOnWindowDismissListener(() -> {
+                    mWindows.remove(windowWrapper);
+                    showNext(activity);
                 });
             }
 
@@ -74,12 +75,9 @@ public class WindowTaskManager {
         WindowWrapper windowWrapper = getTargetWindow(priority);
         if (windowWrapper != null) {
             if (windowWrapper.getWindow() == null) {
-                window.setOnWindowDismissListener(new OnWindowDismissListener() {
-                    @Override
-                    public void onDismiss() {
-                        mWindows.remove(windowWrapper);
-                        showNext(activity);
-                    }
+                window.setOnWindowDismissListener(() -> {
+                    mWindows.remove(windowWrapper);
+                    showNext(activity);
                 });
             }
             windowWrapper.setCanShow(true);
@@ -93,12 +91,9 @@ public class WindowTaskManager {
                     .setCanShow(true)
                     .window(window)
                     .build();
-            window.setOnWindowDismissListener(new OnWindowDismissListener() {
-                @Override
-                public void onDismiss() {
-                    mWindows.remove(newWindowWrapper);
-                    showNext(activity);
-                }
+            window.setOnWindowDismissListener(() -> {
+                mWindows.remove(newWindowWrapper);
+                showNext(activity);
             });
             addWindow(activity, newWindowWrapper);
             if (!isBlockTask) {
@@ -290,6 +285,18 @@ public class WindowTaskManager {
             }
         }
         return null;
+    }
+
+    private boolean hasAddWindow(WindowWrapper windowWrapper) {
+        if (mWindows != null) {
+            for (int i = 0; i < mWindows.size(); i++) {
+                WindowWrapper wrapper = mWindows.get(i);
+                if (wrapper != null) {
+                    return wrapper.getPriority() == windowWrapper.getPriority();
+                }
+            }
+        }
+        return false;
     }
 
 }
