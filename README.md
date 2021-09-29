@@ -22,7 +22,6 @@ public class DemoPopupWindow extends PopupWindow implements IWindow {
 }
 
 ...
-
 ```
 
 然后创建弹窗任务，最后调用showWindow方法显示即可：
