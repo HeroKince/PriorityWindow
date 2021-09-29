@@ -80,3 +80,19 @@ WindowTaskManager.getInstance().clear();
 ```
 退出应用的时候将任务栈清空。
 
+Jitpack引入：
+
+```
+allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
+   
+dependencies {
+	  implementation 'com.github.Geekince:PriorityWindow:Tag'
+}
+   
+```
+
