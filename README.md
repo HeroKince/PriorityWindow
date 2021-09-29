@@ -80,7 +80,7 @@ WindowTaskManager.getInstance().clear();
 ```
 退出应用的时候将任务栈清空。
 
-Jitpack引入：
+### Jitpack引入：
 
 ```
 allprojects {
