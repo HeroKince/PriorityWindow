@@ -12,25 +12,34 @@
 public class DemoDialog extends AlertDialog implements IWindow {
    ...
 }
-```
 
-然后将弹窗添加到任务队列中去：
+DemoActivity extends Activity implements IWindow{
+   ...
+}
 
-```
-WindowTaskManager.getInstance().addWindow(this, new WindowWrapper.Builder()
-.priority(ALERT_PRIORITY)
-.windowType(WindowType.ACTIVITY)
-.setCanShow(false)
-.window(new Dialog())
-.build());
+public class DemoPopupWindow extends PopupWindow implements IWindow {
+   ...
+}
 
-```
-
-最后调用显示弹窗方法：
+...
 
 ```
-WindowTaskManager.getInstance().show(activity);
+
+然后创建弹窗任务，最后调用showWindow方法显示即可：
+
 ```
+IWindow demoDialog = getDialogWindow();
+WindowWrapper windowWrapper = new WindowWrapper.Builder()
+        .priority(AD_PRIORITY)
+        .windowType(WindowType.DIALOG)
+        .window(getDialogWindow())
+        .setCanShow(true)
+        .setWindowName(demoDialog.getClassName())
+        .build();
+WindowTaskManager.getInstance().showWindow(TestActivity.this, getSupportFragmentManager(), windowWrapper);
+```
+
+注意setWindowName要与IWindow中的getClassName()一致。
 
 2.等待逻辑处理后显示
 
@@ -40,28 +49,50 @@ WindowTaskManager.getInstance().show(activity);
 public class DemoDialog extends AlertDialog implements IWindow {
    ...
 }
+
+DemoActivity extends Activity implements IWindow{
+   ...
+}
+
+public class DemoPopupWindow extends PopupWindow implements IWindow {
+   ...
+}
+
+...
 ```
 
 然后初始化弹窗任务：
 
 ```
-WindowTaskManager.getInstance().addWindow(this, new WindowWrapper.Builder()
-.priority(ALERT_PRIORITY)
-.windowType(WindowType.ACTIVITY)
-.setCanShow(false)
-.build());
+IWindow activityWindow = getActivityWindow();
+WindowTaskManager.getInstance().addWindow(new WindowWrapper.Builder()
+        .priority(ALERT_PRIORITY)
+        .windowType(WindowType.ACTIVITY)
+        .window(activityWindow)
+        .setWindowName(activityWindow.getClassName())
+        .setCanShow(true)
+        .build());
+
+IWindow popupWindow = getPopupWindow();
+WindowTaskManager.getInstance().addWindow(new WindowWrapper.Builder()
+        .priority(UPDATE_PRIORITY)
+        .windowType(WindowType.POUPOWINDOW)
+        .window(getPopupWindow())
+        .setWindowName(popupWindow.getClassName())
+        .setCanShow(true)
+        .build());
 ```
 
 在要显示弹窗的地方调用：
 
 ```
-WindowTaskManager.getInstance().enableWindow(TestActivity.this, ALERT_PRIORITY, getActivityWindow());
+ WindowTaskManager.getInstance().continueShow(context, getSupportFragmentManager());
 ```
 
 如果不需要显示弹窗了，则调用：
 
 ```
-WindowTaskManager.getInstance().disableWindow(TestActivity.ALERT_PRIORITY);
+WindowTaskManager.getInstance().disableWindow(windowName);
 ```
 
 3.阻塞弹窗
@@ -69,8 +100,7 @@ WindowTaskManager.getInstance().disableWindow(TestActivity.ALERT_PRIORITY);
 有时候需要阻塞弹窗的显示，比如引导开启系统权限后，会显示系统的权限授权界面，等授权结束后再继续显示其他弹窗。
 
 ```
-WindowTaskManager.getInstance().setBlockTask(false/true);
-WindowTaskManager.getInstance().show(activity);
+WindowTaskManager.getInstance().setEnableWindow(false/true);
 ```
 
 4.清除弹窗
@@ -84,9 +114,9 @@ WindowTaskManager.getInstance().clear();
 
 ```
 allprojects {
-		repositories {
-			...
-			maven { url 'https://jitpack.io' }
+	repositories {
+		...
+		maven { url 'https://jitpack.io' }
 		}
 	}
    
