@@ -2,8 +2,9 @@ package com.ext.priority.window;
 
 import android.app.Activity;
 
-import java.util.ArrayList;
-import java.util.List;
+import androidx.fragment.app.FragmentManager;
+
+import java.util.HashMap;
 
 /**
  * 弹窗管理
@@ -18,10 +19,11 @@ import java.util.List;
  */
 public class WindowTaskManager {
 
-    private List<WindowWrapper> mWindows;
-    private boolean isBlockTask;// 是否阻塞所有弹窗显示
+    private HashMap<String, WindowWrapper> mWindows;
 
     private static WindowTaskManager mDefaultInstance;
+
+    private boolean enable = true;
 
     private WindowTaskManager() {
     }
@@ -42,90 +44,91 @@ public class WindowTaskManager {
 
     /**
      * 添加弹窗
+     * <p>
+     * 1.添加立即需要显示的弹窗
+     * 2.添加需要延迟显示的弹窗
      *
      * @param windowWrapper 待显示的弹窗
      */
-    public synchronized void addWindow(Activity activity, WindowWrapper windowWrapper) {
+    public synchronized void addWindow(WindowWrapper windowWrapper) {
         if (windowWrapper != null) {
             if (mWindows == null) {
-                mWindows = new ArrayList<>();
+                mWindows = new HashMap<>();
             }
 
             if (hasAddWindow(windowWrapper)) {
                 return;
             }
-
-            if (windowWrapper.getWindow() != null) {
-                windowWrapper.getWindow().setOnWindowDismissListener(() -> {
-                    mWindows.remove(windowWrapper);
-                    showNext(activity);
-                });
-            }
-
-            mWindows.add(windowWrapper);
+            mWindows.put(windowWrapper.getWindowName(), windowWrapper);
         }
     }
 
     /**
-     * 弹窗满足展示条件
+     * 弹窗满足展示条件，准备显示
      *
-     * @param priority
+     * @param activity
+     * @param manager
+     * @param windowWrapper
      */
-    public synchronized void enableWindow(Activity activity, int priority, IWindow window) {
-        WindowWrapper windowWrapper = getTargetWindow(priority);
+    public synchronized void showWindow(Activity activity, FragmentManager manager, WindowWrapper windowWrapper) {
+        IWindow window = windowWrapper.getWindow();
+        if (window != null) {
+            addWindow(windowWrapper);
+            if (enable) {
+                show(activity, manager, windowWrapper);
+            }
+        }
+    }
+
+    /**
+     * 标记需要显示的弹窗
+     *
+     * @param windowName
+     */
+    public synchronized void enableWindow(String windowName) {
+        WindowWrapper windowWrapper = getTargetWindow(windowName);
         if (windowWrapper != null) {
-            if (windowWrapper.getWindow() == null) {
-                window.setOnWindowDismissListener(() -> {
-                    mWindows.remove(windowWrapper);
-                    showNext(activity);
-                });
-            }
             windowWrapper.setCanShow(true);
-            windowWrapper.setWindow(window);
-            if (!isBlockTask) {
-                show(activity, windowWrapper);
-            }
-        } else {
-            WindowWrapper newWindowWrapper = new WindowWrapper.Builder()
-                    .priority(priority)
-                    .setCanShow(true)
-                    .window(window)
-                    .build();
-            window.setOnWindowDismissListener(() -> {
-                mWindows.remove(newWindowWrapper);
-                showNext(activity);
-            });
-            addWindow(activity, newWindowWrapper);
-            if (!isBlockTask) {
-                show(activity, newWindowWrapper);
-            }
         }
     }
 
     /**
      * 移除不需要显示弹窗
      *
-     * @param priority
+     * @param windowName
      */
-    public synchronized void disableWindow(int priority) {
-        WindowWrapper windowWrapper = getTargetWindow(priority);
-        if (windowWrapper != null && windowWrapper.getWindow() != null) {
+    public synchronized void disableWindow(String windowName) {
+        WindowWrapper windowWrapper = getTargetWindow(windowName);
+        if (windowWrapper != null) {
             if (mWindows != null) {
-                mWindows.remove(windowWrapper);
+                mWindows.remove(windowName);
             }
         }
     }
 
     /**
      * 展示弹窗
-     * 从优先级最高的Window开始显示
+     * 当有阻塞弹窗时调用此方法，从优先级最高的Window开始显示
      */
-    public synchronized void show(Activity activity) {
+    public synchronized void continueShow(Activity activity, FragmentManager manager) {
+        if (!enable) {
+            return;
+        }
         WindowWrapper windowWrapper = getMaxPriorityWindow();
-        if (windowWrapper != null && windowWrapper.isCanShow()) {
+        if (windowWrapper != null && !windowWrapper.isWindowShow() && windowWrapper.isCanShow()) {
             IWindow window = windowWrapper.getWindow();
             if (window != null && isActivityAlive(activity)) {
-                window.show(activity);
+                windowWrapper.setWindowShow(true);
+                windowWrapper.getWindow().setOnWindowDismissListener(() -> {
+                    if (windowWrapper.getWindow().getClassName().equalsIgnoreCase(windowWrapper.getWindowName())) {
+                        windowWrapper.setWindowShow(false);
+                        mWindows.remove(windowWrapper.getWindowName());
+                        if (windowWrapper.isAutoShowNext()) {
+                            showNext(activity, manager);
+                        }
+                    }
+                });
+                window.show(activity, manager);
             }
         }
     }
@@ -135,9 +138,10 @@ public class WindowTaskManager {
      */
     public synchronized void clear() {
         if (mWindows != null) {
-            for (int i = 0, size = mWindows.size(); i < size; i++) {
-                if (mWindows.get(i) != null) {
-                    IWindow window = mWindows.get(i).getWindow();
+            for (HashMap.Entry<String, WindowWrapper> entry : mWindows.entrySet()) {
+                WindowWrapper windowWrapper = entry.getValue();
+                if (windowWrapper != null) {
+                    IWindow window = windowWrapper.getWindow();
                     if (window != null && window.isShowing()) {
                         window.dismiss();
                     }
@@ -156,9 +160,10 @@ public class WindowTaskManager {
     public synchronized void clear(boolean dismiss) {
         if (mWindows != null) {
             if (dismiss) {
-                for (int i = 0, size = mWindows.size(); i < size; i++) {
-                    if (mWindows.get(i) != null) {
-                        IWindow window = mWindows.get(i).getWindow();
+                for (HashMap.Entry<String, WindowWrapper> entry : mWindows.entrySet()) {
+                    WindowWrapper windowWrapper = entry.getValue();
+                    if (windowWrapper != null) {
+                        IWindow window = windowWrapper.getWindow();
                         if (window != null && window.isShowing()) {
                             window.dismiss();
                         }
@@ -170,66 +175,77 @@ public class WindowTaskManager {
         WindowHelper.getInstance().onDestroy();
     }
 
-    /**
-     * 是否阻塞弹窗
-     *
-     * @return
-     */
-    public boolean isBlockTask() {
-        return isBlockTask;
-    }
-
-    /**
-     * 设置阻塞弹窗
-     * 例如系统权限弹窗显示完再显示其他弹窗
-     *
-     * @param blockTask
-     */
-    public void setBlockTask(boolean blockTask) {
-        isBlockTask = blockTask;
+    public boolean hasShowingWindow() {
+        return getShowingWindow() != null;
     }
 
     /**
      * 显示指定的弹窗
      *
+     * @param activity
+     * @param manager
      * @param windowWrapper
      */
-    private synchronized void show(Activity activity, WindowWrapper windowWrapper) {
+    private synchronized void show(Activity activity, FragmentManager manager, WindowWrapper windowWrapper) {
+        if (!enable) {
+            return;
+        }
         if (windowWrapper != null && windowWrapper.getWindow() != null) {
             WindowWrapper topShowWindow = getShowingWindow();
-            if (topShowWindow == null) {
+            if (topShowWindow == null || !topShowWindow.isWindowShow()) {
                 int priority = windowWrapper.getPriority();
                 WindowWrapper maxPriorityWindow = getMaxPriorityWindow();
-                if (maxPriorityWindow != null && windowWrapper.isCanShow() && priority >= maxPriorityWindow.getPriority()) {
-                    if (windowWrapper.getWindow() != null && isActivityAlive(activity)) {
-                        windowWrapper.getWindow().show(activity);
+                if (maxPriorityWindow != null && priority >= maxPriorityWindow.getPriority() && windowWrapper.isCanShow()) {
+                    if (windowWrapper.getWindow() != null && isActivityAlive(activity) && !windowWrapper.isWindowShow()) {
+                        windowWrapper.setWindowShow(true);
+                        windowWrapper.getWindow().setOnWindowDismissListener(() -> {
+                            if (windowWrapper.getWindow().getClassName().equalsIgnoreCase(windowWrapper.getWindowName())) {
+                                windowWrapper.setWindowShow(false);
+                                mWindows.remove(windowWrapper.getWindowName());
+                                if (windowWrapper.isAutoShowNext()) {
+                                    showNext(activity, manager);
+                                }
+                            }
+                        });
+                        windowWrapper.getWindow().show(activity, manager);
                     }
                 }
             }
         }
     }
-    /**/
+
+    private boolean isActivityAlive(Activity activity) {
+        if (activity == null
+                || activity.isDestroyed()
+                || activity.isFinishing()) {
+            return false;
+        }
+        return true;
+    }
 
     /**
      * 展示下一个优先级最大的Window
      */
-    private synchronized void showNext(Activity activity) {
-        if (isBlockTask) {
+    private synchronized void showNext(Activity activity, FragmentManager manager) {
+        if (!enable) {
             return;
         }
-
         WindowWrapper windowWrapper = getMaxPriorityWindow();
-        if (windowWrapper != null && windowWrapper.isCanShow()) {
-            if (windowWrapper.getWindow() != null && isActivityAlive(activity)) {
-                windowWrapper.getWindow().show(activity);
+        if (windowWrapper != null && !windowWrapper.isWindowShow() && windowWrapper.isCanShow()) {
+            if (windowWrapper.getWindow() != null) {
+                windowWrapper.setWindowShow(true);
+                windowWrapper.getWindow().setOnWindowDismissListener(() -> {
+                    if (windowWrapper.getWindow().getClassName().equalsIgnoreCase(windowWrapper.getWindowName())) {
+                        windowWrapper.setWindowShow(false);
+                        mWindows.remove(windowWrapper.getWindowName());
+                        if (windowWrapper.isAutoShowNext()) {
+                            showNext(activity, manager);
+                        }
+                    }
+                });
+                windowWrapper.getWindow().show(activity, manager);
             }
         }
-    }
-
-    private boolean isActivityAlive(Activity activity) {
-        return activity != null
-                && !activity.isDestroyed()
-                && !activity.isFinishing();
     }
 
     /**
@@ -238,21 +254,25 @@ public class WindowTaskManager {
     private synchronized WindowWrapper getMaxPriorityWindow() {
         if (mWindows != null) {
             int maxPriority = -1;
-            int position = -1;
-            for (int i = 0, size = mWindows.size(); i < size; i++) {
-                WindowWrapper windowWrapper = mWindows.get(i);
+            WindowWrapper targetWrapper = null;
+
+            int i = 0;
+            for (HashMap.Entry<String, WindowWrapper> entry : mWindows.entrySet()) {
+                WindowWrapper windowWrapper = entry.getValue();
                 if (i == 0) {
-                    position = 0;
+                    targetWrapper = windowWrapper;
                     maxPriority = windowWrapper.getPriority();
                 } else {
                     if (windowWrapper.getPriority() >= maxPriority) {
-                        position = i;
+                        targetWrapper = windowWrapper;
                         maxPriority = windowWrapper.getPriority();
                     }
                 }
+                i++;
             }
-            if (position != -1) {
-                return mWindows.get(position);
+
+            if (targetWrapper != null) {
+                return mWindows.get(targetWrapper.getWindowName());
             } else {
                 return null;
             }
@@ -260,11 +280,11 @@ public class WindowTaskManager {
         return null;
     }
 
-    private synchronized WindowWrapper getTargetWindow(int priority) {
+    private synchronized WindowWrapper getTargetWindow(String windowName) {
         if (mWindows != null) {
-            for (int i = 0, size = mWindows.size(); i < size; i++) {
-                WindowWrapper windowWrapper = mWindows.get(i);
-                if (windowWrapper != null && windowWrapper.getPriority() == priority) {
+            for (HashMap.Entry<String, WindowWrapper> entry : mWindows.entrySet()) {
+                WindowWrapper windowWrapper = entry.getValue();
+                if (windowWrapper != null && windowWrapper.getWindowName().equals(windowName)) {
                     return windowWrapper;
                 }
             }
@@ -277,9 +297,10 @@ public class WindowTaskManager {
      */
     private synchronized WindowWrapper getShowingWindow() {
         if (mWindows != null) {
-            for (int i = 0, size = mWindows.size(); i < size; i++) {
-                WindowWrapper windowWrapper = mWindows.get(i);
-                if (windowWrapper != null && windowWrapper.getWindow() != null && windowWrapper.getWindow().isShowing()) {
+            for (HashMap.Entry<String, WindowWrapper> entry : mWindows.entrySet()) {
+                WindowWrapper windowWrapper = entry.getValue();
+                if (windowWrapper != null && windowWrapper.getWindow() != null
+                        && (windowWrapper.isWindowShow() || windowWrapper.getWindow().isShowing())) {
                     return windowWrapper;
                 }
             }
@@ -287,16 +308,22 @@ public class WindowTaskManager {
         return null;
     }
 
-    private boolean hasAddWindow(WindowWrapper windowWrapper) {
+    private synchronized boolean hasAddWindow(WindowWrapper windowWrapper) {
         if (mWindows != null) {
-            for (int i = 0; i < mWindows.size(); i++) {
-                WindowWrapper wrapper = mWindows.get(i);
-                if (wrapper != null) {
-                    return wrapper.getPriority() == windowWrapper.getPriority();
+            for (HashMap.Entry<String, WindowWrapper> entry : mWindows.entrySet()) {
+                WindowWrapper wrapper = entry.getValue();
+                if (windowWrapper != null) {
+                    if (wrapper.getWindowName().equalsIgnoreCase(windowWrapper.getWindowName())) {
+                        return true;
+                    }
                 }
             }
         }
         return false;
+    }
+
+    public void setEnableWindow(boolean enable) {
+        this.enable = enable;
     }
 
 }

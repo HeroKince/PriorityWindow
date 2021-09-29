@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.FragmentManager;
 
 import com.ext.priority.window.IWindow;
 import com.ext.priority.window.OnWindowDismissListener;
@@ -31,8 +32,16 @@ public class DemoDialog extends AlertDialog implements IWindow {
     }
 
     @Override
-    public void show(Activity activity) {
-        super.show();
+    public String getClassName() {
+        return DemoDialog.class.getSimpleName();
+    }
+
+    @Override
+    public void show(Activity activity, FragmentManager manager) {
+        if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
+            return;
+        }
+        show();
     }
 
     @Override

@@ -2,15 +2,19 @@ package com.ext.priority.window;
 
 import android.app.Activity;
 
+import androidx.fragment.app.FragmentManager;
+
 /**
  * 窗口约定规则
  */
 public interface IWindow {
 
+    String getClassName();
+
     /**
      * 弹窗展示
      */
-    void show(Activity activity);
+    void show(Activity activity, FragmentManager manager);
 
     /**
      * 弹窗关闭
@@ -18,7 +22,8 @@ public interface IWindow {
     void dismiss();
 
     /**
-     * 是否展示
+     * 是否在显示
+     *
      * @return
      */
     boolean isShowing();

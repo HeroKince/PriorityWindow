@@ -9,6 +9,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.PopupWindow;
 
+import androidx.fragment.app.FragmentManager;
+
 import com.ext.priority.window.IWindow;
 import com.ext.priority.window.OnWindowDismissListener;
 import com.ext.priority.window.R;
@@ -33,7 +35,12 @@ public class DemoPopupWindow extends PopupWindow implements IWindow {
     }
 
     @Override
-    public void show(Activity activity) {
+    public String getClassName() {
+        return DemoPopupWindow.class.getSimpleName();
+    }
+
+    @Override
+    public void show(Activity activity, FragmentManager manager) {
         showAtLocation(activity.getWindow().getDecorView(), Gravity.CENTER, 0, 0);
     }
 

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentManager;
 
 import com.ext.priority.window.IWindow;
 import com.ext.priority.window.OnWindowDismissListener;
@@ -17,12 +18,6 @@ public class DemoActivity extends Activity implements IWindow {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_demo);
-    }
-
-    @Override
-    public void show(Activity activity) {
-        activity.startActivity(new Intent(activity, DemoActivity.class));
-        //WindowTaskManager.getInstance().disableWindow(TestActivity.UPDATE_PRIORITY);
     }
 
     @Override
@@ -41,6 +36,17 @@ public class DemoActivity extends Activity implements IWindow {
     protected void onDestroy() {
         WindowHelper.getInstance().getActivityDismissListener().onDismiss();
         super.onDestroy();
+    }
+
+    @Override
+    public String getClassName() {
+        return DemoActivity.class.getSimpleName();
+    }
+
+    @Override
+    public void show(Activity activity, FragmentManager manager) {
+        activity.startActivity(new Intent(activity, DemoActivity.class));
+        //WindowTaskManager.getInstance().disableWindow(TestActivity.UPDATE_PRIORITY);
     }
 
     @Override

@@ -16,26 +16,37 @@ public class WindowWrapper {
     private int mPriority;
 
     /**
-     * 是否满足show的条件
-     */
-    private boolean isCanShow;
-
-    /**
      * 弹窗类型
      */
     private WindowType mWindowType;
+
+    /**
+     * 是否满足show的条件
+     */
+    private boolean isCanShow;
 
     /**
      * 弹窗名称
      */
     private String mWindowName;
 
+    /**
+     * 当前弹窗关闭后，是否自动显示下一个
+     */
+    private boolean autoShowNext = true;
+
+    /**
+     * Dialog的show方法不及时，此处作为备选
+     */
+    private boolean isWindowShow;
+
     private WindowWrapper(Builder builder) {
         mWindow = builder.window;
         mPriority = builder.priority;
         mWindowType = builder.windowType;
-        isCanShow = builder.isCanShow;
         mWindowName = builder.windowName;
+        autoShowNext = builder.autoShowNext;
+        isCanShow = builder.isCanShow;
     }
 
     public IWindow getWindow() {
@@ -62,20 +73,36 @@ public class WindowWrapper {
         this.mWindowType = mWindowType;
     }
 
-    public boolean isCanShow() {
-        return isCanShow;
-    }
-
-    public void setCanShow(boolean canShow) {
-        isCanShow = canShow;
-    }
-
     public String getWindowName() {
         return mWindowName;
     }
 
     public void setWindowName(String mWindowName) {
         this.mWindowName = mWindowName;
+    }
+
+    public boolean isAutoShowNext() {
+        return autoShowNext;
+    }
+
+    public void setAutoShowNext(boolean autoShowNext) {
+        this.autoShowNext = autoShowNext;
+    }
+
+    public boolean isWindowShow() {
+        return isWindowShow;
+    }
+
+    public void setWindowShow(boolean windowShow) {
+        isWindowShow = windowShow;
+    }
+
+    public boolean isCanShow() {
+        return isCanShow;
+    }
+
+    public void setCanShow(boolean canShow) {
+        isCanShow = canShow;
     }
 
     public static class Builder {
@@ -105,6 +132,16 @@ public class WindowWrapper {
          */
         private String windowName;
 
+        /**
+         * 当前弹窗关闭后，是否自动显示下一个
+         */
+        private boolean autoShowNext = true;
+
+        /**
+         * Dialog的show方法不及时，此处作为备选
+         */
+        private boolean isWindowShow;
+
         public Builder window(IWindow window) {
             this.window = window;
             return this;
@@ -120,23 +157,37 @@ public class WindowWrapper {
             return this;
         }
 
-        public Builder setCanShow(boolean canShow) {
-            isCanShow = canShow;
+        public Builder setWindowName(String windowName) {
+            this.windowName = windowName;
             return this;
         }
 
-        public String getWindowName() {
-            return windowName;
+        public Builder setAutoShowNext(boolean show) {
+            autoShowNext = show;
+            return this;
         }
 
-        public Builder setWindowName(String windowName) {
-            this.windowName = windowName;
+        public Builder setWindowShow(boolean show) {
+            isWindowShow = show;
+            return this;
+        }
+
+        public Builder setCanShow(boolean canShow) {
+            isCanShow = canShow;
             return this;
         }
 
         public WindowWrapper build() {
             return new WindowWrapper(this);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "WindowWrapper{" +
+                "mWindowName='" + mWindowName + '\'' +
+                ", isWindowShow=" + isWindowShow +
+                '}';
     }
 
 }
