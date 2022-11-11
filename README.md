@@ -162,5 +162,7 @@ dependencies {
 	  implementation 'com.github.Geekince:PriorityWindow:Tag'
 }
    
+[![](https://jitpack.io/v/Geekince/PriorityWindow.svg)](https://jitpack.io/#Geekince/PriorityWindow)
+
 ```
 
