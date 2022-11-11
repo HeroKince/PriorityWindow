@@ -40,13 +40,20 @@ public class WindowWrapper {
      */
     private boolean isWindowShow;
 
+    /**
+     * 是否强制显示弹窗，比如可能存在两个Activity同时显示弹窗的情况
+     */
+    private boolean forceShow;
+
     private WindowWrapper(Builder builder) {
         mWindow = builder.window;
         mPriority = builder.priority;
         mWindowType = builder.windowType;
         mWindowName = builder.windowName;
         autoShowNext = builder.autoShowNext;
+        isWindowShow = builder.isWindowShow;
         isCanShow = builder.isCanShow;
+        forceShow = builder.forceShow;
     }
 
     public IWindow getWindow() {
@@ -105,6 +112,14 @@ public class WindowWrapper {
         isCanShow = canShow;
     }
 
+    public boolean isForceShow() {
+        return forceShow;
+    }
+
+    public void setForceShow(boolean forceShow) {
+        this.forceShow = forceShow;
+    }
+
     public static class Builder {
 
         /**
@@ -142,6 +157,11 @@ public class WindowWrapper {
          */
         private boolean isWindowShow;
 
+        /**
+         * 是否强制显示弹窗，比如可能存在两个Activity同时显示弹窗的情况
+         */
+        private boolean forceShow;
+
         public Builder window(IWindow window) {
             this.window = window;
             return this;
@@ -177,6 +197,11 @@ public class WindowWrapper {
             return this;
         }
 
+        public Builder forceShow(boolean show) {
+            forceShow = show;
+            return this;
+        }
+
         public WindowWrapper build() {
             return new WindowWrapper(this);
         }
@@ -185,8 +210,14 @@ public class WindowWrapper {
     @Override
     public String toString() {
         return "WindowWrapper{" +
-                "mWindowName='" + mWindowName + '\'' +
+                "mWindow=" + mWindow +
+                ", mPriority=" + mPriority +
+                ", mWindowType=" + mWindowType +
+                ", isCanShow=" + isCanShow +
+                ", mWindowName='" + mWindowName + '\'' +
+                ", autoShowNext=" + autoShowNext +
                 ", isWindowShow=" + isWindowShow +
+                ", forceShow=" + forceShow +
                 '}';
     }
 
